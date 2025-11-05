@@ -1,5 +1,4 @@
 #include <SPI.h>
-#include <Streaming.h>
 #include "Adafruit_GFX.h"
 #include "Adafruit_RA8875.h"
 
@@ -61,7 +60,8 @@ uint16_t do_serial_stuff() {
       tft.touchRead(&tx, &ty);  
       x = map(tx, 50, 970, 0, mx);
       y = map(ty, 140, 930, 0, my);
-      Serial << "x" << x << "y" << y << endl;
+      Serial.println("x" + String(x) + " y" + String(y));
+      
     }
   }
 }
