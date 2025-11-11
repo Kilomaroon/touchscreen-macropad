@@ -29,13 +29,15 @@ const char button_fns[BUTTON_ROWS][BUTTON_COLS] =
 };
 
 int button_states[BUTTON_ROWS][BUTTON_COLS];
+bool pressed = false;
+unsigned long last_touch = 0;
 
 
 Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
 uint16_t tx, ty, mx, my, x, y; // x and y are the actual coords you want here
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("RA8875 start");
 
   /* Initialize the display using 'RA8875_480x80', 'RA8875_480x128', 'RA8875_480x272' or 'RA8875_800x480' */
@@ -68,7 +70,7 @@ void setup() {
 }
 
 void loop() {
-  read_touch();
+  poll_buttons();
 }
 
 
@@ -91,91 +93,54 @@ void init_buttons() {
 }
 
 void button_press(int x, int y) {
-  Serial.println(button_fns[x][y]);
+  Serial.println("+" + String(button_fns[x][y]));
   tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_BLUE);
 }
 
 void button_unpress(int x, int y) {
+  Serial.println("-" + String(button_fns[x][y]));
   tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_WHITE);
 }
 
 
 
-// void poll_buttons() {
-//   if (! digitalRead(RA8875_INT)) {
-//     for (int i = 0; i < BUTTON_ROWS; i++) {
-//       for (int j = 0; j < BUTTON_COLS; j++) {
-//         if (!tft.touched()) {
-//           if (button_states[i][j] == 2) {
-//             button_unpress(i, j);
-//           }
-//           button_states[i][j] = 0;
-//         } else {
-//           tft.touchRead(&tx, &ty);  
-//           x = map(tx, 50, 970, 0, mx);
-//           y = map(ty, 140, 930, 0, my);
+void poll_buttons() {
 
-//           if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
-//             //Serial.println(String(i) + "," + String(j) + ": BX" + String(button_coords[i][j][0]) + "-" +String(button_coords[i][j][0] + button_width) + " BY" + String(button_coords[i][j][1]) + "-" + String(button_coords[i][j][1] + button_height));
-
-//             // require two consecutive touch reports on the same button to trigger - reject spurious touch reports
-//             if (button_states[i][j] == 1) {
-//               button_states[i][j] = 2;
-//               button_press(i, j);
-//             } else if (button_states[i][j] == 0) {
-//               button_states[i][j] = 1;
-//             }
-//           } else {
-//             if (button_states[i][j] == 2) {
-//               button_unpress(i, j);
-//             }
-//             button_states[i][j] = 0;
-//           }
-//         }
-//       }
-//     }
-//   }
-// }
-
-uint16_t read_touch() {
-  /* Wait around for touch events */
-
-
-  if (! digitalRead(RA8875_INT)) {
-    bool button_valid = false; // allow rejection of touches not on a button
+  // if touch report available, read & handle
+  if (!digitalRead(RA8875_INT)) {
     if (tft.touched()) {
-      tft.touchRead(&tx, &ty);  
+      tft.touchRead(&tx, &ty);
       x = map(tx, 50, 970, 0, mx);
       y = map(ty, 140, 930, 0, my);
-      //Serial.println("x" + String(x) + " y" + String(y));
-
+      
+      // check if touch is on any button
       for (int i = 0; i < BUTTON_ROWS; i++) {
         for (int j = 0; j < BUTTON_COLS; j++) {
           if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
-            //Serial.println(String(i) + "," + String(j) + ": BX" + String(button_coords[i][j][0]) + "-" +String(button_coords[i][j][0] + button_width) + " BY" + String(button_coords[i][j][1]) + "-" + String(button_coords[i][j][1] + button_height));
-
-            // require two consecutive touch reports on the same button to trigger - reject spurious touch reports
+            // if button touched, increment state counter; 5 reports trigger button
             if (button_states[i][j] == 5) {
               button_press(i, j);
+              button_states[i][j]++;
             } else if (button_states[i][j] < 5) {
               button_states[i][j]++;
             }
-          } else {
-            if (button_states[i][j] == 5) {
-              button_unpress(i, j);
-            }
-            button_states[i][j] = 0;
-          }
+          } 
         }
+        // reset touch timeout watchdog
+        last_touch = micros();
       }
-    } else {
-      for (int i = 0; i < BUTTON_ROWS; i++) {
-        for (int j = 0; j < BUTTON_COLS; j++) {
-          if (button_states[i][j] == 5) {
-            button_unpress(i, j);
-          }
-          button_states[i][j] = 0;
+    }
+
+    // if no touch report, check timeout and unpress buttons if elapsed - kind of a makeshift watchdog
+  } else if ((micros() - last_touch) > 100000) {
+    for (int i = 0; i < BUTTON_ROWS; i++) {
+      for (int j = 0; j < BUTTON_COLS; j++) {
+        // if button pressed, unpress
+        if (button_states[i][j] == 6) {
+          button_unpress(i,j);
         }
+        // reset button counters regardless
+        button_states[i][j] = 0;
       }
     }
   }
