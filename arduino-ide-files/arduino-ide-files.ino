@@ -136,7 +136,7 @@ void poll_buttons() {
     for (int i = 0; i < BUTTON_ROWS; i++) {
       for (int j = 0; j < BUTTON_COLS; j++) {
         // if button pressed, unpress
-        if (button_states[i][j] == 6) {
+        if (button_states[i][j] > 5) {
           button_unpress(i,j);
         }
         // reset button counters regardless

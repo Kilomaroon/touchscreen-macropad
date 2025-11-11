@@ -41,3 +41,11 @@ press little arrow in top left of ide to send program to arduino
 pip install pyserial
 ```
 change serial port in read_serial.py if needed
+
+### Commit Message Terminology
+| Word  | Definition
+| ----- | --------------------------------------------------- |
+| **Evert** | *Verb, transitive.* To turn inside out or outwards. From Late Latin *ēvertere* (“to turn (an item of clothing) inside out”), Latin *ēvertere*, present active infinitive of *ēvertō* (“to turn upside down; to overturn; to reverse”), from *ē-* (variant of *ex-* (prefix meaning ‘out, away’)) + *vertō* (“to reverse; to revolve, turn; to turn around”) (ultimately from Proto-Indo-European **wert-* (“to rotate, turn”)) [1]. |
+
+### References
+[1] Wiktionary contributors, “evert,” Wiktionary. Accessed: Nov. 11, 2025. [Online]. Available: https://en.wiktionary.org/w/index.php?title=evert&oldid=85391271
