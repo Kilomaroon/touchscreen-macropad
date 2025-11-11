@@ -21,13 +21,14 @@
 const int button_width = (SCREEN_WIDTH - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_COLS - 1)) / BUTTON_COLS;
 const int button_height = (SCREEN_HEIGHT - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_ROWS - 1)) / BUTTON_ROWS;
 int button_coords[BUTTON_ROWS][BUTTON_COLS][2];
-char prev_press = '\0';
 
 const char button_fns[BUTTON_ROWS][BUTTON_COLS] = 
 { 
   {'A', 'B', 'C'}, 
   {'D', 'E', 'F'}
 };
+
+int button_states[BUTTON_ROWS][BUTTON_COLS];
 
 
 Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
@@ -89,41 +90,93 @@ void init_buttons() {
   }
 }
 
+void button_press(int x, int y) {
+  Serial.println(button_fns[x][y]);
+  tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_BLUE);
+}
+
+void button_unpress(int x, int y) {
+  tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_WHITE);
+}
+
+
+
+// void poll_buttons() {
+//   if (! digitalRead(RA8875_INT)) {
+//     for (int i = 0; i < BUTTON_ROWS; i++) {
+//       for (int j = 0; j < BUTTON_COLS; j++) {
+//         if (!tft.touched()) {
+//           if (button_states[i][j] == 2) {
+//             button_unpress(i, j);
+//           }
+//           button_states[i][j] = 0;
+//         } else {
+//           tft.touchRead(&tx, &ty);  
+//           x = map(tx, 50, 970, 0, mx);
+//           y = map(ty, 140, 930, 0, my);
+
+//           if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
+//             //Serial.println(String(i) + "," + String(j) + ": BX" + String(button_coords[i][j][0]) + "-" +String(button_coords[i][j][0] + button_width) + " BY" + String(button_coords[i][j][1]) + "-" + String(button_coords[i][j][1] + button_height));
+
+//             // require two consecutive touch reports on the same button to trigger - reject spurious touch reports
+//             if (button_states[i][j] == 1) {
+//               button_states[i][j] = 2;
+//               button_press(i, j);
+//             } else if (button_states[i][j] == 0) {
+//               button_states[i][j] = 1;
+//             }
+//           } else {
+//             if (button_states[i][j] == 2) {
+//               button_unpress(i, j);
+//             }
+//             button_states[i][j] = 0;
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
+
 uint16_t read_touch() {
   /* Wait around for touch events */
 
 
-  if (! digitalRead(RA8875_INT))
-  {
+  if (! digitalRead(RA8875_INT)) {
+    bool button_valid = false; // allow rejection of touches not on a button
     if (tft.touched()) {
       tft.touchRead(&tx, &ty);  
       x = map(tx, 50, 970, 0, mx);
       y = map(ty, 140, 930, 0, my);
       //Serial.println("x" + String(x) + " y" + String(y));
 
-      bool button_valid = false; // allow rejection of touches not on a button
       for (int i = 0; i < BUTTON_ROWS; i++) {
         for (int j = 0; j < BUTTON_COLS; j++) {
           if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
             //Serial.println(String(i) + "," + String(j) + ": BX" + String(button_coords[i][j][0]) + "-" +String(button_coords[i][j][0] + button_width) + " BY" + String(button_coords[i][j][1]) + "-" + String(button_coords[i][j][1] + button_height));
-            button_valid = true;
 
             // require two consecutive touch reports on the same button to trigger - reject spurious touch reports
-            if (prev_press == button_fns[i][j]) {
-              Serial.println(String(button_fns[i][j]));
-            } else {
-              prev_press = button_fns[i][j];
+            if (button_states[i][j] == 5) {
+              button_press(i, j);
+            } else if (button_states[i][j] < 5) {
+              button_states[i][j]++;
             }
+          } else {
+            if (button_states[i][j] == 5) {
+              button_unpress(i, j);
+            }
+            button_states[i][j] = 0;
           }
         }
       }
-      // if no button pressed, explicitly clear the tracker to avoid two spurious reports triggering an effect
-      if (button_valid == false) {
-        prev_press = '\0';
-      }
     } else {
-      prev_press = '\0';
+      for (int i = 0; i < BUTTON_ROWS; i++) {
+        for (int j = 0; j < BUTTON_COLS; j++) {
+          if (button_states[i][j] == 5) {
+            button_unpress(i, j);
+          }
+          button_states[i][j] = 0;
+        }
+      }
     }
-
   }
 }
