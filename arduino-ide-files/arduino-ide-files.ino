@@ -10,6 +10,26 @@
 #define RA8875_CS 10
 #define RA8875_RESET 9
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 480
+#define SCREEN_MARGIN 50
+
+#define BUTTON_COLS 3
+#define BUTTON_ROWS 2
+#define BUTTON_MARGIN 50
+
+const int button_width = (SCREEN_WIDTH - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_COLS - 1)) / BUTTON_COLS;
+const int button_height = (SCREEN_HEIGHT - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_ROWS - 1)) / BUTTON_ROWS;
+int button_coords[BUTTON_ROWS][BUTTON_COLS][2];
+char prev_press = '\0';
+
+const char button_fns[BUTTON_ROWS][BUTTON_COLS] = 
+{ 
+  {'A', 'B', 'C'}, 
+  {'D', 'E', 'F'}
+};
+
+
 Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
 uint16_t tx, ty, mx, my, x, y; // x and y are the actual coords you want here
 
@@ -32,6 +52,7 @@ void setup() {
   tft.PWM1out(255);
 
   tft.fillScreen(RA8875_BLACK);
+  init_buttons();
 
   pinMode(RA8875_INT, INPUT);
   digitalWrite(RA8875_INT, HIGH);
@@ -46,22 +67,63 @@ void setup() {
 }
 
 void loop() {
-  do_serial_stuff();
+  read_touch();
 }
 
-uint16_t do_serial_stuff() {
+
+/**
+ * Calculate button coords & draw to screen
+ * 
+ * For each button, calculate the x & y coords for the top left corner, then draw a white rectangle
+ * to represent the button onscreen.
+ */
+void init_buttons() {
+  for (int i = 0; i < BUTTON_ROWS; i++) {
+    int button_y = SCREEN_MARGIN + i*(BUTTON_MARGIN+button_height);
+    for (int j = 0; j < BUTTON_COLS; j++) {
+      int button_x = SCREEN_MARGIN + j*(BUTTON_MARGIN+button_width);
+      button_coords[i][j][0] = button_x;
+      button_coords[i][j][1] = button_y;
+      tft.fillRect(button_coords[i][j][0], button_coords[i][j][1], button_width, button_height, RA8875_WHITE);
+    }
+  }
+}
+
+uint16_t read_touch() {
   /* Wait around for touch events */
 
 
   if (! digitalRead(RA8875_INT))
   {
-    if (tft.touched())
-    {
+    if (tft.touched()) {
       tft.touchRead(&tx, &ty);  
       x = map(tx, 50, 970, 0, mx);
       y = map(ty, 140, 930, 0, my);
-      Serial.println("x" + String(x) + " y" + String(y));
-      
+      //Serial.println("x" + String(x) + " y" + String(y));
+
+      bool button_valid = false; // allow rejection of touches not on a button
+      for (int i = 0; i < BUTTON_ROWS; i++) {
+        for (int j = 0; j < BUTTON_COLS; j++) {
+          if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
+            //Serial.println(String(i) + "," + String(j) + ": BX" + String(button_coords[i][j][0]) + "-" +String(button_coords[i][j][0] + button_width) + " BY" + String(button_coords[i][j][1]) + "-" + String(button_coords[i][j][1] + button_height));
+            button_valid = true;
+
+            // require two consecutive touch reports on the same button to trigger - reject spurious touch reports
+            if (prev_press == button_fns[i][j]) {
+              Serial.println(String(button_fns[i][j]));
+            } else {
+              prev_press = button_fns[i][j];
+            }
+          }
+        }
+      }
+      // if no button pressed, explicitly clear the tracker to avoid two spurious reports triggering an effect
+      if (button_valid == false) {
+        prev_press = '\0';
+      }
+    } else {
+      prev_press = '\0';
     }
+
   }
 }
