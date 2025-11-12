@@ -18,6 +18,8 @@
 #define BUTTON_ROWS 2
 #define BUTTON_MARGIN 50
 
+#define BUTTON_THRESHOLD 6
+
 const int button_width = (SCREEN_WIDTH - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_COLS - 1)) / BUTTON_COLS;
 const int button_height = (SCREEN_HEIGHT - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_ROWS - 1)) / BUTTON_ROWS;
 int button_coords[BUTTON_ROWS][BUTTON_COLS][2];
@@ -27,10 +29,8 @@ const char button_fns[BUTTON_ROWS][BUTTON_COLS] =
   {'A', 'B', 'C'}, 
   {'D', 'E', 'F'}
 };
-
 int button_states[BUTTON_ROWS][BUTTON_COLS];
-bool pressed = false;
-unsigned long last_touch = 0;
+unsigned long last_touch[BUTTON_ROWS][BUTTON_COLS];
 
 
 Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
@@ -88,6 +88,7 @@ void init_buttons() {
       button_coords[i][j][0] = button_x;
       button_coords[i][j][1] = button_y;
       tft.fillRect(button_coords[i][j][0], button_coords[i][j][1], button_width, button_height, RA8875_WHITE);
+      last_touch[i][j] = millis();
     }
   }
 }
@@ -105,7 +106,7 @@ void button_unpress(int x, int y) {
 
 
 void poll_buttons() {
-
+  
   // if touch report available, read & handle
   if (!digitalRead(RA8875_INT)) {
     if (tft.touched()) {
@@ -117,35 +118,42 @@ void poll_buttons() {
       for (int i = 0; i < BUTTON_ROWS; i++) {
         for (int j = 0; j < BUTTON_COLS; j++) {
           if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0] + button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
-            // if button touched, increment state counter; 5 reports trigger button
-            if (button_states[i][j] == 5) {
+            // if button touched, increment state counter; BUTTON_THRESHOLD reports trigger button
+            if (button_states[i][j] == BUTTON_THRESHOLD) {
               button_press(i, j);
               button_states[i][j]++;
-            } else if (button_states[i][j] < 5) {
+            } else if (button_states[i][j] < BUTTON_THRESHOLD) {
               button_states[i][j]++;
             }
-            // any given touch report can only be on one button, so once we find it we can stop checking
-            goto loop_breakout; // https://xkcd.com/292/
-          } 
+            last_touch[i][j] = millis();
+          } else if ((millis() - last_touch[i][j]) > 100) {
+              // if button pressed, unpress
+            if (button_states[i][j] > BUTTON_THRESHOLD) {
+              button_unpress(i,j);
+            }
+            // reset button counters regardless
+            button_states[i][j] = 0;
+            last_touch[i][j] = millis();
+          }
         }
       }
-loop_breakout:
-      // reset touch timeout watchdog
-      last_touch = millis();
     }
 
     // if no touch report, check timeout and unpress buttons if elapsed - kind of a makeshift watchdog
-  } else if ((millis() - last_touch) > 100) {
+  } else {
     for (int i = 0; i < BUTTON_ROWS; i++) {
       for (int j = 0; j < BUTTON_COLS; j++) {
-        // if button pressed, unpress
-        if (button_states[i][j] > 5) {
-          button_unpress(i,j);
+        if ((millis() - last_touch[i][j]) > 100) {
+          // if button pressed, unpress
+          if (button_states[i][j] > BUTTON_THRESHOLD) {
+            button_unpress(i,j);
+          }
+          // reset button counters regardless
+          button_states[i][j] = 0;
+          last_touch[i][j] = millis();
         }
-        // reset button counters regardless
-        button_states[i][j] = 0;
       }
     }
-    last_touch = millis();
+
   }
 }
