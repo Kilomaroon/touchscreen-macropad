@@ -116,7 +116,7 @@ void poll_buttons() {
       // check if touch is on any button
       for (int i = 0; i < BUTTON_ROWS; i++) {
         for (int j = 0; j < BUTTON_COLS; j++) {
-          if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0]+button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
+          if (button_coords[i][j][0] <= x && x <= (button_coords[i][j][0] + button_width) && button_coords[i][j][1] <= y && y <= (button_coords[i][j][1] + button_height)) {
             // if button touched, increment state counter; 5 reports trigger button
             if (button_states[i][j] == 5) {
               button_press(i, j);
@@ -124,15 +124,18 @@ void poll_buttons() {
             } else if (button_states[i][j] < 5) {
               button_states[i][j]++;
             }
+            // any given touch report can only be on one button, so once we find it we can stop checking
+            goto loop_breakout; // https://xkcd.com/292/
           } 
         }
-        // reset touch timeout watchdog
-        last_touch = micros();
       }
+loop_breakout:
+      // reset touch timeout watchdog
+      last_touch = millis();
     }
 
     // if no touch report, check timeout and unpress buttons if elapsed - kind of a makeshift watchdog
-  } else if ((micros() - last_touch) > 100000) {
+  } else if ((millis() - last_touch) > 100) {
     for (int i = 0; i < BUTTON_ROWS; i++) {
       for (int j = 0; j < BUTTON_COLS; j++) {
         // if button pressed, unpress
@@ -143,5 +146,6 @@ void poll_buttons() {
         button_states[i][j] = 0;
       }
     }
+    last_touch = millis();
   }
 }
