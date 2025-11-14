@@ -24,11 +24,6 @@ const int button_width = (SCREEN_WIDTH - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTT
 const int button_height = (SCREEN_HEIGHT - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_ROWS - 1)) / BUTTON_ROWS;
 int button_coords[BUTTON_ROWS][BUTTON_COLS][2];
 
-const char button_fns[BUTTON_ROWS][BUTTON_COLS] = 
-{ 
-  {'A', 'B', 'C'}, 
-  {'D', 'E', 'F'}
-};
 int button_states[BUTTON_ROWS][BUTTON_COLS];
 unsigned long last_touch[BUTTON_ROWS][BUTTON_COLS];
 
@@ -37,7 +32,7 @@ Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
 uint16_t tx, ty, mx, my, x, y; // x and y are the actual coords you want here
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); // TODO do we want a high baud rate or a low one? Does it matter? Are we even keeping any of this?
   Serial.println("RA8875 start");
 
   /* Initialize the display using 'RA8875_480x80', 'RA8875_480x128', 'RA8875_480x272' or 'RA8875_800x480' */
@@ -93,14 +88,14 @@ void init_buttons() {
   }
 }
 
-void button_press(int x, int y) {
-  Serial.println("+" + String(button_fns[x][y]));
-  tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_BLUE);
+void button_press(int row, int col) {
+  tft.fillRect(button_coords[row][col][0], button_coords[row][col][1], button_width, button_height, RA8875_BLUE);
+  Serial.print("+" + String(row*BUTTON_COLS + col));
 }
 
-void button_unpress(int x, int y) {
-  Serial.println("-" + String(button_fns[x][y]));
-  tft.fillRect(button_coords[x][y][0], button_coords[x][y][1], button_width, button_height, RA8875_WHITE);
+void button_unpress(int row, int col) {
+  Serial.print("-" + String(row*BUTTON_COLS + col));
+  tft.fillRect(button_coords[row][col][0], button_coords[row][col][1], button_width, button_height, RA8875_WHITE);
 }
 
 
@@ -139,7 +134,7 @@ void poll_buttons() {
       }
     }
 
-    // if no touch report, check timeout and unpress buttons if elapsed - kind of a makeshift watchdog
+  // if no touch report, check timeout and unpress buttons if elapsed - kind of a makeshift watchdog
   } else {
     for (int i = 0; i < BUTTON_ROWS; i++) {
       for (int j = 0; j < BUTTON_COLS; j++) {
