@@ -18,7 +18,7 @@ Install [Arduino IDE](https://www.arduino.cc/en/software/)
 - Press the little arrow in top left of IDE window to program the Arduino Uno.
 
 ### If you have trouble programming the Arduino
-In terminal, you can confirm what port you're using with: 
+In terminal, you can confirm the port with: 
 ```
 ls /dev/ttyACM0
 ```
