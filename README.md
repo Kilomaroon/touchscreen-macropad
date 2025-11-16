@@ -1,48 +1,39 @@
-# touchscreen-macropad
-## Getting this thing working
-### Pinouts
-sck  : 13
 
-miso : 12
+# Setup
+## Hardware Pinouts
+| RA9975 Pin  | Arduino Uno Pin
+| ----- | --------------------------------------------------- |
+|SCK|13|
+|MISO|14|
+|MOSI|11|
+|CS|10|
+|RST|9|
+|INT|7|
 
-mosi : 11
+## Arduino 
+Install [Arduino IDE](https://www.arduino.cc/en/software/)
+- Within the IDE, install the `Adafruit RA8875 v 1.4.4` library and dependencies.
+- Restart the IDE.
+- Connect the Arduiono to your PC and select it in the Arduino IDE's board selector.
+- Press the little arrow in top left of IDE window to program the Arduino Uno.
 
-cs   : 10
-
-rst  : 9
-
-int  : 7
-
-### Setup Aruino
-install arduino ide https://www.arduino.cc/en/software/
-
-install these in arduino ide with dependencies
-```
-Adafruit RA8875 v 1.4.4
-```
-restart ide
-
-plug arduino into computer
-
-Select the board in board selector
-
-in terminal, confirm port you're using with 
+### If you have trouble programming the Arduino
+In terminal, you can confirm what port you're using with: 
 ```
 ls /dev/ttyACM0
 ```
-then set read write perms
+and set read write perms with:
 ```
 sudo chmod a+rw /dev/ttyACM0
 ```
-press little arrow in top left of ide to send program to arduino
 
-### If you want to play around with python - here's the starting point
-```
-pip install pyserial
-```
-change serial port in read_serial.py if needed
 
-### Commit Message Terminology
+## Python
+Install the pyserial library with `pip install pyserial`.
+
+Section to be updated
+
+# Commit Message Terminology
 | Word  | Definition
 | ----- | --------------------------------------------------- |
 | **Evert** | *Verb, transitive.* To turn inside out or outwards. From Late Latin *ēvertere* (“to turn (an item of clothing) inside out”), Latin *ēvertere*, present active infinitive of *ēvertō* (“to turn upside down; to overturn; to reverse”), from *ē-* (variant of *ex-* (prefix meaning ‘out, away’)) + *vertō* (“to reverse; to revolve, turn; to turn around”) (ultimately from Proto-Indo-European **wert-* (“to rotate, turn”)) [1]. |
