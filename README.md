@@ -1,7 +1,7 @@
 
 # Setup
 ## Hardware Pinouts
-| RA9975 Pin  | Arduino Uno Pin
+| RA8875 Pin  | Arduino Uno Pin
 | ----- | --------------------------------------------------- |
 |SCK|13|
 |MISO|14|
