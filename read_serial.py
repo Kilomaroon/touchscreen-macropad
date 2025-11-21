@@ -1,7 +1,7 @@
 import serial
 
-arduino_port = '/dev/ttyACM0'
-baud_rate = 9600
+arduino_port = '/dev/ttyACM1'
+baud_rate = 115200
 
 # x is between 0 and 800, y is between 0 and 480
 def readserial(comport, baudrate):

@@ -1,0 +1,27 @@
+# /etc/systemd/system/touch-macropad-service.service
+[Unit]
+Description=Serial Communication Service for Touchscreen Macropad
+After=dev-touchscreenmacropad.device
+BindsTo=dev-touchscreenmacropad.device
+StartLimitBurst=3
+StartLimitIntervalSec=10
+
+[Service]
+Type=simple
+User=chthonica
+Group=dialout
+ExecStart=/usr/bin/python3 /usr/local/bin/touch-macropad-service.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=true
+
+# Allow access to serial devices
+DeviceAllow=/dev/touchscreenmacropad rw
+DeviceAllow=/dev/uinput rw
