@@ -24,6 +24,14 @@ const int button_width = (SCREEN_WIDTH - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTT
 const int button_height = (SCREEN_HEIGHT - 2*SCREEN_MARGIN - BUTTON_MARGIN * (BUTTON_ROWS - 1)) / BUTTON_ROWS;
 int button_coords[BUTTON_ROWS][BUTTON_COLS][2];
 
+// All the UI variables
+const String numerals[] = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"};
+int button_radius = 20;
+int button_colour = 0xf529;
+int fg_colour = button_colour;
+int bg_colour = RA8875_BLACK;
+int text_size = 3;
+
 int button_states[BUTTON_ROWS][BUTTON_COLS];
 unsigned long last_touch[BUTTON_ROWS][BUTTON_COLS];
 
@@ -82,23 +90,56 @@ void init_buttons() {
       int button_x = SCREEN_MARGIN + j*(BUTTON_MARGIN+button_width);
       button_coords[i][j][0] = button_x;
       button_coords[i][j][1] = button_y;
-      tft.fillRect(button_coords[i][j][0], button_coords[i][j][1], button_width, button_height, RA8875_WHITE);
+
+      draw_button(i, j, false);
       last_touch[i][j] = millis();
     }
   }
 }
 
-void button_press(int row, int col) {
-  tft.fillRect(button_coords[row][col][0], button_coords[row][col][1], button_width, button_height, RA8875_BLUE);
-  Serial.print("+" + String(row*BUTTON_COLS + col));
+void button_press(int i, int j) {
+  Serial.print("+" + String(i*BUTTON_COLS + j));
+  draw_button(i, j, true);
 }
 
-void button_unpress(int row, int col) {
-  Serial.print("-" + String(row*BUTTON_COLS + col));
-  tft.fillRect(button_coords[row][col][0], button_coords[row][col][1], button_width, button_height, RA8875_WHITE);
+void button_unpress(int i, int j) {
+  Serial.print("-" + String(i*BUTTON_COLS + j));
+  draw_button(i, j, false);
 }
 
+/**
+ * Draws a single button at position i and j
+ * 
+ * press_state is either currently being pressed (true), or before/after a press (false)
+ */
+void draw_button(int i, int j, bool press_state) {
 
+  if (press_state == true) {
+    fg_colour = RA8875_BLACK;
+    bg_colour = button_colour;
+  } else {
+    fg_colour = button_colour;
+    bg_colour = RA8875_BLACK;
+  }
+
+  tft.fillRoundRect(button_coords[i][j][0], button_coords[i][j][1], button_width, button_height, button_radius, bg_colour);
+  
+  for (int p = 0; p < 5; p++) {
+    tft.drawRoundRect((button_coords[i][j][0]+p), (button_coords[i][j][1]+p), button_width-(p*2), button_height-(p*2), button_radius, button_colour); //Make border around button (no, there was no better way - I checked)
+  }
+  
+  tft.textMode();
+  tft.textEnlarge(text_size);
+  // Sets cursor to the middle of button, the way enlarging works is that the text size turns into 8 pixels * (scaling_factor + 1)
+  tft.textSetCursor((button_coords[i][j][0]+(button_width-(8*(text_size+1)*numerals[i * BUTTON_COLS + j].length()))/2), (button_coords[i][j][1]+(button_height-(16*(text_size+1)))/2)); 
+  tft.textColor(fg_colour, bg_colour); 
+  
+  if (i * BUTTON_COLS + j < sizeof(numerals)/sizeof(String)){
+    tft.print(numerals[i * BUTTON_COLS + j]);
+  } else {tft.print(numerals[0]);}
+   
+  tft.graphicsMode();
+}
 
 void poll_buttons() {
   
