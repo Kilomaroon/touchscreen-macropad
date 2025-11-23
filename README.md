@@ -31,7 +31,7 @@ On the computer side, this sets up a systemd service to monitor your computer's 
 It also sets up a few udev rules to automatically run/stop the service when the macropad is connected/disconnected, and to make a symlink so the service doesn't have to worry about which serial port the Arduino is connected to. (There's also an optional additional udev rule that will send a desktop notification when the macropad is plugged in, mostly because I sort of set that up by accident when trying to figure out how to do the systemd service.)
 
 ### Installation
-Ensure you have the system packages `python3-evdev` ([documentation](https://python-evdev.readthedocs.io/en/latest/)) and `python3-serial` ([documentation](https://www.pyserial.org/docs)) installed (they should already be installed on Mint).
+Ensure you have the system packages `python3-evdev` ([documentation](https://python-evdev.readthedocs.io/en/latest/)) and `python3-serial` ([documentation](https://www.pyserial.org/docs)) installed (they should already be installed on Mint [NO THEY ARE NOT] [INSTALL THEM]).
 
 From the `computer-interface` directory, make the `setup.sh` file executable using
 ```bash
