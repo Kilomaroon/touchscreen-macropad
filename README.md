@@ -1,6 +1,11 @@
+# Happy Birthday!
+We made you a little thing! Hope you enjoy it! We've been working on this for a bit and think you'll have a lot of fun tinkering with it!
+
+To clarify: this is a touchscreen macropad we've made for you. It connects a little touchscreen display to an arduino - which sends your inputs over serial. You shouldn't need to mess with this side much though (unless you want to tweak the visuals) as the actual macro assignment is on the python end in the `computer-interface` folder.
 
 # Setup
 ## Hardware Pinouts
+You shouldn't need to rewire this - but just in case...
 | RA8875 Pin  | Arduino Uno Pin
 | ----- | --------------------------------------------------- |
 |SCK|13|
@@ -14,7 +19,7 @@
 Install [Arduino IDE](https://www.arduino.cc/en/software/)
 - Within the IDE, install the `Adafruit RA8875 v 1.4.4` library and dependencies.
 - Restart the IDE.
-- Connect the Arduiono to your PC and select it in the Arduino IDE's board selector.
+- Connect the Arduino to your PC and select it in the Arduino IDE's board selector.
 - Press the little arrow in top left of IDE window to program the Arduino Uno.
 
 ### If you have trouble programming the Arduino
@@ -26,10 +31,10 @@ and set read write perms with:
 ```
 sudo chmod a+rw /dev/ttyACM0
 ```
-
+I'm sure you can figure out any other issues that you find.
 
 ## Python
-Install the pyserial library with `pip install pyserial`.
+Install the pyserial library with `pip install pyserial`. 
 
 Section to be updated
 
