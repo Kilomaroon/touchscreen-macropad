@@ -7,7 +7,7 @@ LOG_FILE="/var/log/arduino-hotplug.log"
 
 echo "$(date): Arduino connected at $DEVICE_PATH" >> "$LOG_FILE"
 
-# Send notification to user
+# Send notification to all logged-in users
 for user in $(loginctl list-users --output json \
              | jq -r '.[] | .user') ; do
   systemd-run \
@@ -16,10 +16,6 @@ for user in $(loginctl list-users --output json \
     notify-send \
        "Arduino Connected" "Device available at $DEVICE_PATH";
 done
-#systemd-run --user --machine chthonica@.host notify-send "Arduino Connected" "Device available at $DEVICE_PATH";
 
-
-# Start application if needed
-# sudo -u "$SUDO_USER" /path/to/arduino-app &
 
 exit 0

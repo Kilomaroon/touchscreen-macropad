@@ -9,6 +9,16 @@ import signal
 import sys
 from pathlib import Path
 
+key_sequences = {
+    "0+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_S],
+    "1+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_C],
+    "2+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_V],
+    "3+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_C],
+    "0-": [],
+    "1-": [],
+    "2-": [],
+    "3-": [ecodes.KEY_LEFTCTRL, ecodes.KEY_V]
+}
 
 
 class SerialService:
@@ -17,16 +27,6 @@ class SerialService:
         self.running = False
         self.serial = None
         self.ui = UInput()
-        self.key_sequences = {
-            "0+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_LEFTSHIFT, ecodes.KEY_P],
-            "1+": [ecodes.KEY_1],
-            "2+": [ecodes.KEY_2],
-            "3+": [ecodes.KEY_3],
-            "0-": [],
-            "1-": [],
-            "2-": [],
-            "3-": []
-        }
         self.packetMatch = re.compile("^(\\d+)[\\+\\-]$")
         self.setup_logging()
         
@@ -42,7 +42,7 @@ class SerialService:
         """Load configuration"""
         config = {
             'port': '/dev/touchmacropad',
-            'baudrate': 9600,
+            'baudrate': 19200,
             'timeout': 1,
             'retry_interval': 5
         }
@@ -90,11 +90,11 @@ class SerialService:
             packet = self.packetMatch.match(data_string)
             if packet:
                 self.logger.info(f"Received: {data_string}")
-                for k in self.key_sequences[data_string]:
+                for k in key_sequences[data_string]:
                     self.ui.write(ecodes.EV_KEY, k, 1)
                 self.ui.syn()
 
-                for k in self.key_sequences[data_string]:
+                for k in key_sequences[data_string]:
                     self.ui.write(ecodes.EV_KEY, k, 0)
                 self.ui.syn()
             else:

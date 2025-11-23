@@ -17,26 +17,45 @@ You shouldn't need to rewire this - but just in case...
 
 ## Arduino 
 Install [Arduino IDE](https://www.arduino.cc/en/software/)
-- Within the IDE, install the `Adafruit RA8875 v 1.4.4` library and dependencies.
+- Within the IDE, install the `Adafruit RA8875 v 1.4.4` and `Adafruit GFX` libraries and dependencies.
 - Restart the IDE.
 - Connect the Arduino to your PC and select it in the Arduino IDE's board selector.
 - Press the little arrow in top left of IDE window to program the Arduino Uno.
 
-### If you have trouble programming the Arduino
-In terminal, you can confirm the port with: 
-```
-ls /dev/ttyACM0
-```
-and set read write perms with:
-```
-sudo chmod a+rw /dev/ttyACM0
-```
-I'm sure you can figure out any other issues that you find.
+### Modifying Button Layout
+The buttons are laid out on the touchscreen in a rectangular layout. The number of columns and rows in the layout, as well as the margin between the buttons, can be configured by editing the `BUTTON_COLS`, `BUTTON_ROWS`, and `BUTTON_MARGIN` macros in the `touchscreen-macropad.ino` file. The button labels can be configured by editing the string array `numerals` in the same file.
 
 ## Python
-Install the pyserial library with `pip install pyserial`. 
+### Installation
+Ensure you have the system packages `python3-evdev` and `python3-serial` installed (they should already be installed on Mint).
 
-Section to be updated
+From the `computer-interface` directory, make the `setup.sh` file executable using
+```
+chmod +x setup.sh
+```
+
+Then run it (sudo required) using
+```
+sudo ./setup.sh
+```
+
+### Configuring Functions
+To configure the functions of each button, edit the `key_sequences` dict in `touch-macropad-service.py`. You can configure a keypress or combination of keypresses to be sent when each button is pressed (+) or released (-). The default setup is as follows:
+
+| Button | Press  | Release   |
+| ------ | -----  | --------- |
+| 0      | CTRL-S | \<nothing\> |
+| 1      | CTRL-C | \<nothing\> |
+| 2      | CTRL-V | \<nothing\> |
+| 3      | CTRL-C | CTRL-V    |
+
+
+
+### (Optional) Device Connection Notifications
+If desired, the udev configuration can be modified to send a desktop notification when the device is connected. To do so, uncomment the last line in `computer-interface/98-touch-macropad.rules` and copy `computer-interface/arduino-connected.sh` to `/usr/local/bin/arduino-connected.sh` with:
+```
+sudo cp computer-interface/arduino-connected.sh /usr/local/bin/arduino-connected.sh
+```
 
 # Commit Message Terminology
 | Word  | Definition

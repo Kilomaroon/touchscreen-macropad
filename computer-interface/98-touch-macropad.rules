@@ -1,0 +1,14 @@
+# Create udev rule for persistent device naming
+# /etc/udev/rules.d/98-touch-macropad.rules
+
+# By serial number (most reliable)
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", SYMLINK+="touchscreenmacropad"
+
+# Set permissions
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", MODE="0666", GROUP="dialout"
+
+# Set up systemd service
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", TAG+="systemd", ENV{SYSTEMD_WANTS}="touch-macropad-service.service"
+
+# Run hotplug script (OPTIONAL)
+# SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", RUN+="/usr/local/bin/arduino-connected.sh $env{DEVNAME}"

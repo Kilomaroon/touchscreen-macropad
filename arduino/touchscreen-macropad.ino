@@ -40,7 +40,7 @@ Adafruit_RA8875 tft = Adafruit_RA8875(RA8875_CS, RA8875_RESET);
 uint16_t tx, ty, mx, my, x, y; // x and y are the actual coords you want here
 
 void setup() {
-  Serial.begin(115200); // TODO do we want a high baud rate or a low one? Does it matter? Are we even keeping any of this?
+  Serial.begin(19200);
   Serial.println("RA8875 start");
 
   /* Initialize the display using 'RA8875_480x80', 'RA8875_480x128', 'RA8875_480x272' or 'RA8875_800x480' */
@@ -98,12 +98,12 @@ void init_buttons() {
 }
 
 void button_press(int i, int j) {
-  Serial.print("+" + String(i*BUTTON_COLS + j));
+  Serial.println(String(i*BUTTON_COLS + j) + "+");
   draw_button(i, j, true);
 }
 
 void button_unpress(int i, int j) {
-  Serial.print("-" + String(i*BUTTON_COLS + j));
+  Serial.println(String(i*BUTTON_COLS + j)+ "-");
   draw_button(i, j, false);
 }
 
