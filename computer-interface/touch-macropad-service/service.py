@@ -8,13 +8,10 @@ import signal
 import sys
 import traceback
 from pathlib import Path
-from sound_handler import SoundHandler, SoundAction
+from sound_handler import SoundHandler
 from evdev_handler import EvdevHandler, ecodes
-from config import actions, sound_dir
-
-class Action(Enum):
-    KEYS = 1
-    SOUND = 2
+from cfg import actions, sound_dir
+from enums import Action, SoundAction
 
 class SerialService:
     def __init__(self, config_file='/etc/touch-macropad-service.conf'):
@@ -97,9 +94,8 @@ class SerialService:
             elif actions[data_string][0] == Action.KEYS:
                 self.evdev_handler.handle(actions[data_string][1])
             elif actions[data_string][0] == Action.SOUND:
-                # self.sound_handler.handle(actions[data_string][1])
-                pass
-                
+                self.sound_handler.handle(*actions[data_string][1:])
+                                
         except Exception as e:
             self.logger.error(f"Error handling input: {traceback.format_exc()}")
 

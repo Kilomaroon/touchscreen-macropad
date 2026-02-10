@@ -8,20 +8,30 @@ StartLimitIntervalSec=10
 
 [Service]
 Type=simple
-User=ENTERUSER
-Group=ENTERGROUP
+#User=ENTERUSER
+#Group=ENTERGROUP
 ExecStart=/usr/bin/python3 /usr/local/bin/touch-macropad/service.py
 Restart=always
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
-# Security settings
-PrivateTmp=yes
-ProtectSystem=strict
-ProtectHome=yes
-NoNewPrivileges=true
-
-# Allow access to serial devices
 DeviceAllow=/dev/touchscreenmacropad rw
 DeviceAllow=/dev/uinput rw
+
+# ====== Security settings ======
+PrivateTmp=yes
+ProtectSystem=strict
+# ProtectHome=yes
+NoNewPrivileges=true
+
+# setting ProtectHome=yes blocks access to /home, /root, and /run/user - but /run/user is needed to access the running pipewire socket. so instead block the same paths manually
+InaccessiblePaths=/home /root
+
+# mount a temp filesystem here to prevent access to user runtime dur, but keep the pipewire files
+TemporaryFileSystem=/run/user
+BindReadOnlyPaths=/run/user/ENTERUID/pipewire-0 /run/user/ENTERUID/pipewire-0.lock /run/user/ENTERUID/pipewire-0-manager /run/user/ENTERUID/pipewire-0-manager.lock
+
+# block /data but keep the sound source files
+TemporaryFileSystem=/data
+BindReadOnlyPaths=/data/Code/touchscreen-macropad/sounds

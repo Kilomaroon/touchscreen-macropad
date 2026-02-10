@@ -88,6 +88,14 @@ If desired, the udev configuration can be modified to send a desktop notificatio
 sudo cp computer-interface/arduino-connected.sh /usr/local/bin/arduino-connected.sh
 ```
 
+# Soundboard Functionality
+
+Now also works as a soundboard with Pipewire.
+See `touch-macropad-service/cfg.py` for examples of how to configure.
+
+Sound files by default go in `/usr/local/bin/touch-macropad/sound/` (symlink it to your data directory of choice or edit it in the config).
+If you see errors in `journalctl` about sound files not existing, make sure the path is not made inaccessible by directives in `touch-macropad-service.service`.
+
 # Commit Message Glossary
 | Word  | Definition
 | ----- | --------------------------------------------------- |

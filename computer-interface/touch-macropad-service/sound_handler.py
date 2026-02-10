@@ -4,15 +4,9 @@ import logging
 from datetime import datetime
 import time
 from pathlib import Path
-from enum import Enum
 import os
 from pprint import pformat
-
-class SoundAction(Enum):
-    PLAY = 1
-    LOOP = 2
-    HOLD = 3
-    KILL = 4
+from enums import SoundAction
 
 class SoundHandler():
     ''' Maintains a list of Sound objects, acts as interface with service. '''
@@ -32,6 +26,7 @@ class SoundHandler():
         logger.info(f"SoundHandler loaded sounds:\n{pformat(list(self.sounds.keys()))}")
 
     def handle(self, sound_action, sound_rel_file):
+        # check sound exists
         sound_file = os.path.join(self.base_dir, sound_rel_file)
         if str(sound_file) not in self.sounds:
             raise Exception(f"Sound file doesn't exist: {sound_file}")
@@ -85,7 +80,7 @@ class Sound():
         else:
             # kill process
             self.proc.terminate()
-            self.logger.info(f'Killed {self}')
+            self.logger.info(f'Sent SIGTERM to {self}')
 
     def loop(self):
         if self.is_playing():

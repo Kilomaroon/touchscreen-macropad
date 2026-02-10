@@ -21,6 +21,7 @@ Options:
 # defaults
 distro="ubuntu"
 user=$SUDO_USER
+userid=`id -u $user`
 group=$SUDO_USER
 
 # get command-line flags
@@ -79,19 +80,21 @@ echo "Created: /usr/local/bin/touch-macropad/*"
 sudo chown -R $user:$group /usr/local/bin/touch-macropad
 sudo chmod u+x /usr/local/bin/touch-macropad
 
-sudo cp ./touch-macropad-service.service /etc/systemd/system/touch-macropad-service.service
+sudo cp ./touch-macropad-service.service /etc/systemd/user/touch-macropad-service.service
 echo "Created: /etc/systemd/system/touch-macropad-service.service"
 
 # Set up systemd service file to run as currently logged-in user
-sudo sed -i -e "s/ENTERUSER/$user/g" /etc/systemd/system/touch-macropad-service.service
-sudo sed -i -e "s/ENTERGROUP/$group/g" /etc/systemd/system/touch-macropad-service.service
+sudo sed -i -e "s/ENTERUSER/$user/g" /etc/systemd/user/touch-macropad-service.service
+sudo sed -i -e "s/ENTERGROUP/$group/g" /etc/systemd/user/touch-macropad-service.service
+# Set up directories so that current user's pipewire files are exposed to service
+sudo sed -i -e "s/ENTERUID/$userid/g" /etc/systemd/user/touch-macropad-service.service
 
 # Reload udev rules
 sudo udevadm control --reload
 
 # Reload systemd manager configuration
-sudo systemctl daemon-reload
+systemctl --user daemon-reload
 # i use this script to for quickly reloading stuff after making changes and this is helpful
-sudo systemctl restart touch-macropad-service
+systemctl --user restart touch-macropad-service
 
 echo "Done!"
