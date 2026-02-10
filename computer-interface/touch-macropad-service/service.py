@@ -1,34 +1,42 @@
 # /usr/local/bin/touch-macropad-service.py
-from evdev import UInput, ecodes
-#import evdev
+from enum import Enum
 import re
 import serial
 import time
 import logging
 import signal
 import sys
+import traceback
 from pathlib import Path
+# from sound_handler import SoundHandler
+from evdev_handler import EvdevHandler, ecodes
 
-key_sequences = {
-    "0+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_S],
-    "1+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_C],
-    "2+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_V],
-    "3+": [ecodes.KEY_LEFTCTRL, ecodes.KEY_C],
-    "0-": [],
-    "1-": [],
-    "2-": [],
-    "3-": [ecodes.KEY_LEFTCTRL, ecodes.KEY_V]
+class Action(Enum):
+    KEYS = 1
+    SOUND = 2
+
+# each entry is a function
+actions = {
+    "0+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_S]),
+    "1+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_C]),
+    "2+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_V]),
+    "3+": (Action.SOUND, ''),
+    "0-": (),
+    "1-": (),
+    "2-": (),
+    "3-": (),
 }
-
 
 class SerialService:
     def __init__(self, config_file='/etc/touch-macropad-service.conf'):
         self.config_file = config_file
         self.running = False
         self.serial = None
-        self.ui = UInput()
         self.packetMatch = re.compile("^(\\d+)[\\+\\-]$")
-        self.setup_logging()
+        self.logger = self.setup_logging()
+
+        self.evdev_handler = EvdevHandler(self.logger)
+        # self.sound_handler = SoundHandler(self.logger)
         
     def setup_logging(self):
         """Setup logging for systemd"""
@@ -36,8 +44,8 @@ class SerialService:
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s'
         )
-        self.logger = logging.getLogger(__name__)
-        
+        return logging.getLogger(__name__)
+
     def load_config(self):
         """Load configuration"""
         config = {
@@ -84,23 +92,28 @@ class SerialService:
         
     def process_data(self, data):
         """Process received data"""
-        # Override this method in subclasses
+        
+        packet = None
         try:
+            # try to read packet
             data_string = data.decode('utf-8', errors='ignore').strip()
             packet = self.packetMatch.match(data_string)
-            if packet:
-                self.logger.info(f"Received: {data_string}")
-                for k in key_sequences[data_string]:
-                    self.ui.write(ecodes.EV_KEY, k, 1)
-                self.ui.syn()
-
-                for k in key_sequences[data_string]:
-                    self.ui.write(ecodes.EV_KEY, k, 0)
-                self.ui.syn()
-            else:
+            self.logger.info(f"Received: {data_string}")
+            if packet == None:
                 self.logger.error(f"Invalid data received from device: {data_string}")
+
+            # handle action
+            if data_string not in actions.keys() or not actions[data_string]:
+                pass
+            elif actions[data_string][0] == Action.KEYS:
+                self.evdev_handler.handle(actions[data_string][1])
+            elif actions[data_string][0] == Action.SOUND:
+                # self.sound_handler.handle(actions[data_string][1])
+                pass
+                
         except Exception as e:
-            self.logger.error(f"Error reading from device: {e}")
+            self.logger.error(f"Error handling input: {traceback.format_exc()}")
+
         
     def run(self):
         """Main service loop"""
@@ -138,7 +151,7 @@ class SerialService:
         """Cleanup resources"""
         if self.serial:
             self.serial.close()
-            self.ui.close()
+            self.evdev_handler.close()
             
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
