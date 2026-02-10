@@ -9,7 +9,7 @@ StartLimitIntervalSec=10
 [Service]
 Type=simple
 User=ENTERUSER
-Group=dialout
+Group=ENTERGROUP
 ExecStart=/usr/bin/python3 /usr/local/bin/touch-macropad-service.py
 Restart=always
 RestartSec=5

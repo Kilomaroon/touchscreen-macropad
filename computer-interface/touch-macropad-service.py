@@ -41,7 +41,7 @@ class SerialService:
     def load_config(self):
         """Load configuration"""
         config = {
-            'port': '/dev/touchmacropad',
+            'port': '/dev/touchscreenmacropad',
             'baudrate': 19200,
             'timeout': 1,
             'retry_interval': 5

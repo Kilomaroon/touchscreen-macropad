@@ -1,0 +1,19 @@
+# Create udev rule for persistent device naming
+# /etc/udev/rules.d/98-touch-macropad.rules
+
+# By serial number (most reliable)
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", SYMLINK+="touchscreenmacropad"
+
+# Set permissions (filename needs to be <73 for this to work)
+# https://wiki.archlinux.org/title/Udev#Allowing_regular_users_to_use_devices
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", MODE="0660", TAG+="uaccess"
+
+# Ensure systemd service can write to /dev/uinput (in order to use evdev). the service runs as your user, which means your user needs access. this is based on:
+# https://github.com/ValveSoftware/steam-for-linux/issues/4794#issuecomment-327006061
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
+
+# Set up systemd service
+SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", TAG+="systemd", ENV{SYSTEMD_WANTS}="touch-macropad-service.service"
+
+# Run hotplug script (OPTIONAL)
+# SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", RUN+="/usr/local/bin/arduino-connected.sh $env{DEVNAME}"

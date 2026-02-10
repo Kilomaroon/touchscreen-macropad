@@ -14,6 +14,8 @@ You shouldn't need to rewire this - but just in case...
 |CS|10|
 |RST|9|
 |INT|7|
+|VIN|Vin|
+|GND|GND|
 
 ## Arduino 
 Install [Arduino IDE](https://www.arduino.cc/en/software/)
@@ -21,6 +23,7 @@ Install [Arduino IDE](https://www.arduino.cc/en/software/)
 - Restart the IDE.
 - Connect the Arduino to your PC and select it in the Arduino IDE's board selector.
 - Press the little arrow in top left of IDE window to program the Arduino Uno.
+- (If you are running Wayland, you may have trouble running the IDE---the easiest workaround is to run it in XWayland (ensure you have XWayland installed first))
 
 ### Modifying Button Layout
 The buttons are laid out on the touchscreen in a rectangular layout. The number of columns and rows in the layout, as well as the margin between the buttons, can be configured by editing the `BUTTON_COLS`, `BUTTON_ROWS`, and `BUTTON_MARGIN` macros in the `touchscreen-macropad.ino` file. The button labels can be configured by editing the string array `numerals` in the same file.
@@ -31,7 +34,10 @@ On the computer side, this sets up a systemd service to monitor your computer's 
 It also sets up a few udev rules to automatically run/stop the service when the macropad is connected/disconnected, and to make a symlink so the service doesn't have to worry about which serial port the Arduino is connected to. (There's also an optional additional udev rule that will send a desktop notification when the macropad is plugged in, mostly because I sort of set that up by accident when trying to figure out how to do the systemd service.)
 
 ### Installation
-Ensure you have the system packages `python3-evdev` ([documentation](https://python-evdev.readthedocs.io/en/latest/)) and `python3-serial` ([documentation](https://www.pyserial.org/docs)) installed (they should already be installed on Mint [NO THEY ARE NOT] [INSTALL THEM]).
+Ensure you have the system packages `python3-evdev` ([documentation](https://python-evdev.readthedocs.io/en/latest/)) and `python3-serial` ([documentation](https://www.pyserial.org/docs)) installed.
+* (they should already be installed on Mint [NO THEY ARE NOT] [INSTALL THEM])
+* On Arch these can be found as [`python-evdev`](https://archlinux.org/packages/extra/x86_64/python-evdev/) and [`python-pyserial`](https://archlinux.org/packages/extra/any/python-pyserial/)
+* After installation, you may need to reboot in order for the systemd service to run properly (you may see error messages about missing dependencies until you do this).
 
 From the `computer-interface` directory, make the `setup.sh` file executable using
 ```bash
@@ -41,6 +47,11 @@ chmod +x setup.sh
 Then run it (sudo required) using
 ```bash
 sudo ./setup.sh
+```
+
+Make sure `/usr/local/bin/touch-macropad-service.py` is readable by your user, if it is not already.
+```bash
+sudo chmod 644 /usr/local/bin/touch-macropad-service.py
 ```
 
 If you make any changes to the files after the initial installation, you may have to run 
