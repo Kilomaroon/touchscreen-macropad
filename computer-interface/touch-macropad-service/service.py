@@ -8,24 +8,13 @@ import signal
 import sys
 import traceback
 from pathlib import Path
-# from sound_handler import SoundHandler
+from sound_handler import SoundHandler, SoundAction
 from evdev_handler import EvdevHandler, ecodes
+from config import actions, sound_dir
 
 class Action(Enum):
     KEYS = 1
     SOUND = 2
-
-# each entry is a function
-actions = {
-    "0+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_S]),
-    "1+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_C]),
-    "2+": (Action.KEYS, [ecodes.KEY_LEFTCTRL, ecodes.KEY_V]),
-    "3+": (Action.SOUND, ''),
-    "0-": (),
-    "1-": (),
-    "2-": (),
-    "3-": (),
-}
 
 class SerialService:
     def __init__(self, config_file='/etc/touch-macropad-service.conf'):
@@ -36,7 +25,7 @@ class SerialService:
         self.logger = self.setup_logging()
 
         self.evdev_handler = EvdevHandler(self.logger)
-        # self.sound_handler = SoundHandler(self.logger)
+        self.sound_handler = SoundHandler(self.logger, base_dir=sound_dir)
         
     def setup_logging(self):
         """Setup logging for systemd"""
