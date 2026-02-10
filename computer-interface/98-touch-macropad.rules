@@ -10,5 +10,9 @@ SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", MODE="0666", GROUP="dia
 # Set up systemd service
 SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", TAG+="systemd", ENV{SYSTEMD_WANTS}="touch-macropad-service.service"
 
+# Ensure systemd service can write to /dev/uinput (in order to use evdev). the service runs as your user, which means your user needs access. this is based on how the Steam Controller does it:
+# https://github.com/ValveSoftware/steam-for-linux/issues/4794#issuecomment-327006061
+KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess", OPTIONS+="static_node=uinput"
+
 # Run hotplug script (OPTIONAL)
 # SUBSYSTEM=="tty", ATTRS{serial}=="242383139353518130F1", RUN+="/usr/local/bin/arduino-connected.sh $env{DEVNAME}"
